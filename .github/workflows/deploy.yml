@@ -35,7 +35,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "directoabc"
-          entrypoint: "index.js"
+          entrypoint: "/index.js"
           root: ""
           
           
