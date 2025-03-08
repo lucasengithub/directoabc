@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-read index.js"
+  },
+  "imports": {
+    "express": "npm:express@4.21.2",
+    "socket.io": "npm:socket.io@4.8.1",
+    "uuid": "npm:uuid@11.1.0"
+  }
+}
