@@ -15,7 +15,7 @@
     <h1>DirectoABC - Receive Screen</h1>
     <h3>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact directoabc@lucaspeinado.es or use the OTAL version. <a href="https://github.com/lucasengithub/directoabc" target="_blank">GITHUB</a></h3>
     <div id="roomCode"></div>
-    <video id="remoteVideo" autoplay playsinline fullscreen class="hidden"></video>
+    <video id="remoteVideo" autoplay playsinline class="hidden"></video>
 
     <!-- Replace the current Socket.IO script with the CDN version -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
@@ -48,32 +48,32 @@
         const roomCodeDisplay = document.getElementById('roomCode');
         let peerConnection;
 
-        // Request a room code when page loads
-        socket.emit('create-room');
+        // Add fullscreen change handler
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
-        // Configure WebRTC with STUN servers
-        const rtcConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        };
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.msFullscreenElement) {
+                // Redirect to home page when exiting fullscreen
+                window.location.href = '/';
+            }
+        }
 
-        // Display room code when received
-        socket.on('room-created', (roomId) => {
-            roomCodeDisplay.textContent = `Screen Code: ${roomId}`;
-        });
-
-        // Handle incoming viewer
+        // Modify the ontrack handler
         socket.on('viewer-joined', async (viewerId) => {
             try {
-                // Create peer connection
                 peerConnection = new RTCPeerConnection(rtcConfig);
 
-                // Handle incoming tracks
                 peerConnection.ontrack = (event) => {
                     remoteVideo.srcObject = event.streams[0];
                     remoteVideo.classList.remove('hidden');
+                    // Request fullscreen when video starts playing
+                    remoteVideo.onplaying = () => enterFullscreen(remoteVideo);
                 };
 
                 // Handle and send ICE candidates
