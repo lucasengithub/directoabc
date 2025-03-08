@@ -13,8 +13,9 @@
 </head>
 <body>
     <h1>DirectoABC - Receive Screen</h1>
+    <h3>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact directoabc@lucaspeinado.es or use the OTAL version. <a href="https://github.com/lucasengithub/directoabc" target="_blank">GITHUB</a></h3>
     <div id="roomCode"></div>
-    <video id="remoteVideo" autoplay playsinline class="hidden"></video>
+    <video id="remoteVideo" autoplay playsinline fullscreen class="hidden"></video>
 
     <!-- Replace the current Socket.IO script with the CDN version -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
@@ -60,7 +61,7 @@
 
         // Display room code when received
         socket.on('room-created', (roomId) => {
-            roomCodeDisplay.textContent = `Room Code: ${roomId}`;
+            roomCodeDisplay.textContent = `Screen Code: ${roomId}`;
         });
 
         // Handle incoming viewer
