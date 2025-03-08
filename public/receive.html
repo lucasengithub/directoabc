@@ -8,6 +8,7 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
         #roomCode { font-size: 24px; margin: 20px 0; font-weight: bold; }
         #remoteVideo { max-width: 100%; background: #f0f0f0; }
+        #status { margin: 20px 0; font-weight: bold; } /* Add status style */
         .hidden { display: none; }
     </style>
 </head>
@@ -15,17 +16,20 @@
     <h1>DirectoABC - Receive Screen</h1>
     <h3>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact directoabc@lucaspeinado.es or use the OTAL version. <a href="https://github.com/lucasengithub/directoabc" target="_blank">GITHUB</a></h3>
     <div id="roomCode"></div>
+    <div id="status"></div> <!-- Add status display element -->
     <video id="remoteVideo" autoplay playsinline class="hidden"></video>
 
-    <!-- Replace the current Socket.IO script with the CDN version -->
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Use local Socket.IO -->
     <script>
-        // Initialize Socket.IO with fallback options
-        const socket = io(window.location.origin, {
+        const statusDisplay = document.getElementById('status'); // Add status element reference
+        
+        // Initialize Socket.IO with more robust configuration
+        const socket = io({
             transports: ['websocket', 'polling'],
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
-            timeout: 10000
+            timeout: 10000,
+            path: '/socket.io/'
         });
 
         // Add connection event handlers

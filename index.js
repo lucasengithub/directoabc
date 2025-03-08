@@ -10,7 +10,15 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const http = createServer(app);
-const io = new Server(http);
+const io = new Server(http, {
+    cors: {
+        origin: "*", // Be more specific in production
+        methods: ["GET", "POST"],
+        allowedHeaders: ["my-custom-header"],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
+});
 
 // Serve static files from public directory
 app.use(express.static('public'));
