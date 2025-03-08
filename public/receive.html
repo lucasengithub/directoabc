@@ -19,12 +19,30 @@
     <!-- Replace the current Socket.IO script with the CDN version -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script>
-        // Initialize Socket.IO with explicit connection URL for Vercel
+        // Initialize Socket.IO with fallback options
         const socket = io(window.location.origin, {
-            transports: ['websocket'],
-            upgrade: false
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 10000
         });
-        
+
+        // Add connection event handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            statusDisplay.textContent = 'Connected to server';
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            statusDisplay.textContent = 'Connection error. Retrying...';
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log('Disconnected:', reason);
+            statusDisplay.textContent = 'Disconnected from server';
+        });
+
         const remoteVideo = document.getElementById('remoteVideo');
         const roomCodeDisplay = document.getElementById('roomCode');
         let peerConnection;
