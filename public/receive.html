@@ -8,51 +8,25 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
         #roomCode { font-size: 24px; margin: 20px 0; font-weight: bold; }
         #remoteVideo { max-width: 100%; background: #f0f0f0; }
-        #status { margin: 20px 0; font-weight: bold; } /* Add status style */
         .hidden { display: none; }
     </style>
 </head>
 <body>
     <h1>DirectoABC - Receive Screen</h1>
-    <h3>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact directoabc@lucaspeinado.es or use the OTAL version. <a href="https://github.com/lucasengithub/directoabc" target="_blank">GITHUB</a></h3>
     <div id="roomCode"></div>
-    <div id="status"></div> <!-- Add status display element -->
     <video id="remoteVideo" autoplay playsinline class="hidden"></video>
 
-    <script src="/socket.io/socket.io.js"></script> <!-- Use local Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const statusDisplay = document.getElementById('status'); // Add status element reference
-        
-        // Initialize Socket.IO with more robust configuration
-        const socket = io({
-            transports: ['websocket', 'polling'],
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            timeout: 10000,
-            path: '/socket.io/'
-        });
-
-        // Add connection event handlers
-        socket.on('connect', () => {
-            console.log('Connected to server');
-            statusDisplay.textContent = 'Connected to server';
-        });
-
-        socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
-            statusDisplay.textContent = 'Connection error. Retrying...';
-        });
-
-        socket.on('disconnect', (reason) => {
-            console.log('Disconnected:', reason);
-            statusDisplay.textContent = 'Disconnected from server';
-        });
-
+        const socket = io();
         const remoteVideo = document.getElementById('remoteVideo');
         const roomCodeDisplay = document.getElementById('roomCode');
         let peerConnection;
 
-        // Add WebRTC configuration
+        // Request a room code when page loads
+        socket.emit('create-room');
+
+        // Configure WebRTC with STUN servers
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -60,45 +34,21 @@
             ]
         };
 
-        // Add fullscreen function
-        function enterFullscreen(element) {
-            if (element.requestFullscreen) {
-                element.requestFullscreen();
-            } else if (element.webkitRequestFullscreen) {
-                element.webkitRequestFullscreen();
-            } else if (element.mozRequestFullScreen) {
-                element.mozRequestFullScreen();
-            } else if (element.msRequestFullscreen) {
-                element.msRequestFullscreen();
-            }
-        }
+        // Display room code when received
+        socket.on('room-created', (roomId) => {
+            roomCodeDisplay.textContent = `Room Code: ${roomId}`;
+        });
 
-        // Add fullscreen change handler
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-        function handleFullscreenChange() {
-            if (!document.fullscreenElement && 
-                !document.webkitFullscreenElement && 
-                !document.mozFullScreenElement && 
-                !document.msFullscreenElement) {
-                // Redirect to home page when exiting fullscreen
-                window.location.href = '/';
-            }
-        }
-
-        // Modify the ontrack handler
+        // Handle incoming viewer
         socket.on('viewer-joined', async (viewerId) => {
             try {
+                // Create peer connection
                 peerConnection = new RTCPeerConnection(rtcConfig);
 
+                // Handle incoming tracks
                 peerConnection.ontrack = (event) => {
                     remoteVideo.srcObject = event.streams[0];
                     remoteVideo.classList.remove('hidden');
-                    // Request fullscreen when video starts playing
-                    remoteVideo.onplaying = () => enterFullscreen(remoteVideo);
                 };
 
                 // Handle and send ICE candidates
