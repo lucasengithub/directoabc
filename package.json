@@ -1,20 +1,19 @@
 {
-  "name": "directoabc",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js",
-    "deno-start": "deno run --allow-net --allow-read index.js"
-  },
-  "keywords": [],
-  "author": "Lucas Peinado",
-  "license": "SEE LICENSE IN LICENSE.md",
-  "description": "Send your screen",
-  "dependencies": {
-    "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
+    "name": "directoabc",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js",
+      "dev": "node index.js"
+    },
+    "keywords": [],
+    "author": "Lucas Peinado",
+    "license": "SEE LICENSE IN LICENSE.md",
+    "description": "Send your screen",
+    "dependencies": {
+      "express": "^4.21.2",
+      "socket.io": "^4.8.1",
+      "uuid": "^11.1.0"
+    }
   }
-}
