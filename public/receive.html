@@ -16,10 +16,15 @@
     <div id="roomCode"></div>
     <video id="remoteVideo" autoplay playsinline class="hidden"></video>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Replace the current Socket.IO script with the CDN version -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script>
-        // Initialize Socket.IO with the server URL
-        const socket = io.connect(window.location.origin);
+        // Initialize Socket.IO with explicit connection URL for Vercel
+        const socket = io(window.location.origin, {
+            transports: ['websocket'],
+            upgrade: false
+        });
+        
         const remoteVideo = document.getElementById('remoteVideo');
         const roomCodeDisplay = document.getElementById('roomCode');
         let peerConnection;
