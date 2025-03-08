@@ -1,8 +1,16 @@
-const express = require('express');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const { v4: uuidv4 } = require('uuid');
+const http = createServer(app);
+const io = new Server(http);
 
 // Serve static files from public directory
 app.use(express.static('public'));
