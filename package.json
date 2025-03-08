@@ -1,10 +1,11 @@
 {
   "name": "directoabc",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "keywords": [],
   "author": "Lucas Peinado",
@@ -14,14 +15,5 @@
     "express": "^4.21.2",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
-  },
-  "devDependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lucasengithub/directoabc.git"
-  },
-  "bugs": {
-    "url": "https://github.com/lucasengithub/directoabc/issues"
-  },
-  "homepage": "https://github.com/lucasengithub/directoabc#readme"
+  }
 }
