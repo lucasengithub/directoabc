@@ -4,108 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DirectoABC - Receive Screen</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
-        #roomCode { font-size: 24px; margin: 20px 0; font-weight: bold; }
-        #remoteVideo { max-width: 100%; background: #f0f0f0; }
-        .hidden { display: none; }
-    </style>
+    <link rel="stylesheet" href="/css.css">
 </head>
 <body>
-    <h1>DirectoABC - Receive Screen</h1>
-    <h3>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact directoabc@lucaspeinado.es or use the OTAL version. <a href="https://github.com/lucasengithub/directoabc" target="_blank">GITHUB</a></h3>
 
-    <div id="roomCode"></div>
-    <video id="remoteVideo" autoplay playsinline class="hidden"></video>
+    <section id="rem" class="receive">
+        <p id="commercial">This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact <a href="mailto:hola@lucaspeinado.es" target="_blank">hola@lucaspeinado.es</a> or use the OTAL commercial version.  See more about this on <a href="https://github.com/lucasengithub/directoabc" target="_blank"></a>GitHub.</p>
+        <div class="overcontent">
+            <h1>DirectoABC.XYZ</h1>
+            <h3 id="roomCode"></h3>
+        </div>
+        <h2 id="status">Ready to receive.</h2>
+        
+        <video id="loadingVideo" autoplay preload poster="" loop playsinline muted src="/media/ready.mp4">
+            <source src="/media/ready.mp4" type="video/webm">
+        </video>
+    </section>
+   
+    <video id="remoteVideo" autoplay class="hidden" playsinline style="pointer-events: none;"></video>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const remoteVideo = document.getElementById('remoteVideo');
-        const roomCodeDisplay = document.getElementById('roomCode');
-        let peerConnection;
-
-        // Add full screen trigger on video play
-        remoteVideo.addEventListener('play', () => {
-            remoteVideo.requestFullscreen().catch(error => {
-                console.error('Full screen request failed:', error);
-            });
-        });
-
-        // Request a room code when page loads
-        socket.emit('create-room');
-
-        // Configure WebRTC with STUN servers
-        const rtcConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        };
-
-        // Display room code when received
-        socket.on('room-created', (roomId) => {
-            roomCodeDisplay.textContent = `Room Code: ${roomId}`;
-        });
-
-        // Handle incoming viewer
-        socket.on('viewer-joined', async (viewerId) => {
-            try {
-                // Create peer connection
-                peerConnection = new RTCPeerConnection(rtcConfig);
-
-                // Handle incoming tracks
-                peerConnection.ontrack = (event) => {
-                    remoteVideo.srcObject = event.streams[0];
-                    remoteVideo.classList.remove('hidden');
-                };
-
-                // Handle and send ICE candidates
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        socket.emit('ice-candidate', {
-                            target: viewerId,
-                            candidate: event.candidate
-                        });
-                    }
-                };
-
-                // Handle connection state changes
-                peerConnection.onconnectionstatechange = () => {
-                    if (peerConnection.connectionState === 'disconnected') {
-                        remoteVideo.classList.add('hidden');
-                        remoteVideo.srcObject = null;
-                    }
-                };
-            } catch (error) {
-                console.error('Error creating peer connection:', error);
-            }
-        });
-
-        // Handle incoming WebRTC signaling
-        socket.on('offer', async (data) => {
-            try {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                socket.emit('answer', {
-                    target: data.sender,
-                    sdp: answer
-                });
-            } catch (error) {
-                console.error('Error handling offer:', error);
-            }
-        });
-
-        socket.on('ice-candidate', async (data) => {
-            try {
-                if (peerConnection) {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                }
-            } catch (error) {
-                console.error('Error adding ICE candidate:', error);
-            }
-        });
-    </script>
+    <script src="/js/receive.js"></script>
 </body>
 </html>
