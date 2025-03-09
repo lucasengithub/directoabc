@@ -135,3 +135,9 @@ socket.on('ice-candidate', async (data) => {
         console.error('Error adding ICE candidate:', error);
     }
 });
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && remoteVideo.srcObject) {
+        remoteVideo.play().catch(error => console.error("Error reactivando remoteVideo:", error));
+    }
+});
