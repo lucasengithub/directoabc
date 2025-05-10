@@ -26,32 +26,23 @@ joinButton.addEventListener('click', async () => {
             throw new Error('Screen sharing API not available');
         }
 
-        // Request screen share with optimized low-latency settings
+        // Request screen share with standard settings
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
                 cursor: "always",
-                displaySurface: "monitor",
-                logicalSurface: true,
                 frameRate: {
-                    min: 24,    // Asegurar mínimo 24fps para fluidez
-                    ideal: 30,  // Objetivo de 30fps
-                    max: 30     // Limitar a 30fps para reducir carga
+                    ideal: 30
                 },
-                width: { ideal: 1920 },  // Resolución HD
-                height: { ideal: 1080 },
-                latency: { ideal: 0.03 }, // Preferir baja latencia
-                contentHint: "motion"     // Optimizar para movimiento
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
             },
-            audio: false,
-            preferCurrentTab: false,      // Preferir pantalla completa sobre pestaña
-            selfBrowserSurface: "exclude" // Evitar capturar la propia interfaz
+            audio: false
         });
         
-        // Optimizar pistas de video para baja latencia
+        // Optimizar pistas de video
         stream.getVideoTracks().forEach(track => {
             if (track.getConstraints && track.applyConstraints) {
                 track.applyConstraints({
-                    latency: { ideal: 0.03 },
                     width: { ideal: 1920 },
                     height: { ideal: 1080 }
                 }).catch(e => console.warn('No se pudieron aplicar restricciones:', e));
