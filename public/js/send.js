@@ -26,18 +26,36 @@ joinButton.addEventListener('click', async () => {
             throw new Error('Screen sharing API not available');
         }
 
-        // Request screen share with adaptive bitrate settings
+        // Request screen share with optimized low-latency settings
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
                 cursor: "always",
                 displaySurface: "monitor",
                 logicalSurface: true,
                 frameRate: {
-                    ideal: 30,
-                    max: 60
-                }
+                    min: 24,    // Asegurar mínimo 24fps para fluidez
+                    ideal: 30,  // Objetivo de 30fps
+                    max: 30     // Limitar a 30fps para reducir carga
+                },
+                width: { ideal: 1920 },  // Resolución HD
+                height: { ideal: 1080 },
+                latency: { ideal: 0.03 }, // Preferir baja latencia
+                contentHint: "motion"     // Optimizar para movimiento
             },
-            audio: false
+            audio: false,
+            preferCurrentTab: false,      // Preferir pantalla completa sobre pestaña
+            selfBrowserSurface: "exclude" // Evitar capturar la propia interfaz
+        });
+        
+        // Optimizar pistas de video para baja latencia
+        stream.getVideoTracks().forEach(track => {
+            if (track.getConstraints && track.applyConstraints) {
+                track.applyConstraints({
+                    latency: { ideal: 0.03 },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }).catch(e => console.warn('No se pudieron aplicar restricciones:', e));
+            }
         });
 
         // After getting stream, join the room
@@ -76,24 +94,41 @@ socket.on('joined-room', async (hostId) => {
             throw new Error('No stream available');
         }
 
-        // Create peer connection with adaptive bitrate settings
-        peerConnection = new RTCPeerConnection(rtcConfig);
+        // Create peer connection with optimized low-latency settings
+        peerConnection = new RTCPeerConnection({
+            ...rtcConfig,
+            iceTransportPolicy: 'all',
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
+        });
         
-        // Enable bandwidth adaptation
+        // Enable low-latency optimization
         const transceiver = peerConnection.addTransceiver(stream.getVideoTracks()[0], {
             direction: 'sendonly',
             streams: [stream],
             sendEncodings: [
                 {
-                    // Configuración para adaptación de bitrate
-                    maxBitrate: 5000000, // 5 Mbps máximo
+                    // Configuración optimizada para baja latencia
+                    maxBitrate: 3000000, // 3 Mbps para equilibrar calidad y velocidad
+                    maxFramerate: 30,     // Limitar a 30fps para reducir carga
                     priority: 'high',
                     networkPriority: 'high',
                     adaptivePtime: true,
-                    degradationPreference: 'maintain-framerate' // Priorizar calidad sobre framerate
+                    scaleResolutionDownBy: 1.0, // No escalar inicialmente
+                    degradationPreference: 'balanced' // Equilibrio entre framerate y resolución
                 }
             ]
         });
+        
+        // Configurar buffer mínimo para reducir latencia
+        if (transceiver.sender && transceiver.sender.getParameters) {
+            const parameters = transceiver.sender.getParameters();
+            if (parameters.encodings && parameters.encodings.length > 0) {
+                // Reducir buffer para menor latencia
+                parameters.encodings[0].networkPriority = 'very-high';
+                transceiver.sender.setParameters(parameters).catch(e => console.error('Error al configurar parámetros:', e));
+            }
+        }
         
         // Add audio track if available
         const audioTracks = stream.getAudioTracks();

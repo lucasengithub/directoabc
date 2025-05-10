@@ -54,14 +54,32 @@ socket.on('viewer-joined', async (viewerId) => {
         // Create peer connection
         peerConnection = new RTCPeerConnection(rtcConfig);
 
-        // Handle incoming tracks
+        // Handle incoming tracks con optimización para mostrar el video más rápido
         peerConnection.ontrack = (event) => {
             console.log("Stream recibido:", event.streams[0]);
+            
+            // Preparar el video antes de que lleguen los metadatos
+            remoteVideo.style.zIndex = "0"; // Aumentar z-index para que sea visible
+            remoteVideo.style.opacity = "0.3"; // Iniciar con opacidad baja para transición suave
+            remoteVideo.classList.remove('hidden');
+            remoteVideo.muted = true; // Permitir autoplay sin interacción
+            
+            // Asignar el stream inmediatamente
             remoteVideo.srcObject = event.streams[0];
-            remoteVideo.muted = true; // Agrega mute para permitir autoplay sin interacción
-            remoteVideo.addEventListener('loadedmetadata', () => {
-                remoteVideo.play().catch(error => console.error("Error al reproducir remoteVideo:", error));
-            });
+            
+            // Configurar para reproducción de baja latencia
+            remoteVideo.playsInline = true;
+            remoteVideo.autoplay = true;
+            
+            // Iniciar reproducción lo antes posible
+            const playPromise = remoteVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Error al reproducir remoteVideo:", error);
+                    // Intentar reproducir nuevamente con interacción del usuario
+                    remoteVideo.addEventListener('click', () => remoteVideo.play());
+                });
+            }
         };
 
         // Handle and send ICE candidates
@@ -74,29 +92,49 @@ socket.on('viewer-joined', async (viewerId) => {
             }
         };
 
-        // Handle connection state changes
+        // Handle connection state changes con transición mejorada
         peerConnection.onconnectionstatechange = () => {
             console.log("connectionState:", peerConnection.connectionState);
             if (peerConnection.connectionState === 'connected') {
-                // Hacer fade out de la sección "rem" y fade in de remoteVideo con transición de 1s
-                remSection.style.transition = "opacity 1s ease-in-out";
-                remoteVideo.style.transition = "opacity 1s ease-in-out";
-                remSection.style.opacity = "0";
-                remoteVideo.style.opacity = "1";
-                remoteVideo.classList.remove('hidden');
-                // Al finalizar la transición, ocultar la sección "rem" (opcional)
-                setTimeout(() => {
-                    remSection.classList.add('hidden');
-                }, 1000);
+                // Transición más rápida y suave entre pantallas
+                remSection.style.transition = "opacity 0.5s ease-out";
+                remoteVideo.style.transition = "opacity 0.5s ease-in";
                 
+                // Asegurar que el video remoto ya está visible antes de ocultar la pantalla de espera
+                if (remoteVideo.readyState >= 2) { // HAVE_CURRENT_DATA o superior
+                    // Transición inmediata si ya tenemos datos de video
+                    performTransition();
+                } else {
+                    // Esperar a tener suficientes datos de video antes de la transición
+                    remoteVideo.addEventListener('canplay', performTransition, { once: true });
+                    
+                    // Timeout de seguridad por si el evento canplay no se dispara
+                    setTimeout(performTransition, 300);
+                }
+                
+                function performTransition() {
+                    // Hacer la transición más rápida
+                    remSection.style.opacity = "0";
+                    remoteVideo.style.opacity = "1";
+                    
+                    // Ocultar la sección de espera más rápido
+                    setTimeout(() => {
+                        remSection.classList.add('hidden');
+                    }, 500);
+                }
             } else if (peerConnection.connectionState === 'disconnected') {
-                // Al desconectar, revertir la transición:
-                // Mostrar la sección "rem" y ocultar remoteVideo
+                // Al desconectar, revertir la transición más rápidamente
                 remSection.classList.remove('hidden');
+                remSection.style.transition = "opacity 0.3s ease-in";
+                remoteVideo.style.transition = "opacity 0.3s ease-out";
                 remSection.style.opacity = "1";
                 remoteVideo.style.opacity = "0";
-                remoteVideo.classList.add('hidden');
-                remoteVideo.srcObject = null;
+                
+                // Limpiar el video más rápido
+                setTimeout(() => {
+                    remoteVideo.classList.add('hidden');
+                    remoteVideo.srcObject = null;
+                }, 300);
             }
         };
     } catch (error) {

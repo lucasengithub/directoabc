@@ -35,10 +35,10 @@ h1 {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: -10; /* Cambiado de -10 a 0 */
+    z-index: 0; /* Aumentado para asegurar visibilidad */
     opacity: 0;
     background-color: black;
-
+    transition: opacity 0.5s ease-in-out;
 }
 
 #loadingVideo {
