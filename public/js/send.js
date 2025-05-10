@@ -26,12 +26,18 @@ joinButton.addEventListener('click', async () => {
             throw new Error('Screen sharing API not available');
         }
 
-        // Request screen share
+        // Request screen share with adaptive bitrate settings
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
-                cursor: "always"
+                cursor: "always",
+                displaySurface: "monitor",
+                logicalSurface: true,
+                frameRate: {
+                    ideal: 30,
+                    max: 60
+                }
             },
-            audio: true
+            audio: false
         });
 
         // After getting stream, join the room
@@ -70,13 +76,30 @@ socket.on('joined-room', async (hostId) => {
             throw new Error('No stream available');
         }
 
-        // Create peer connection
+        // Create peer connection with adaptive bitrate settings
         peerConnection = new RTCPeerConnection(rtcConfig);
-
-        // Add tracks to peer connection
-        stream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, stream);
+        
+        // Enable bandwidth adaptation
+        const transceiver = peerConnection.addTransceiver(stream.getVideoTracks()[0], {
+            direction: 'sendonly',
+            streams: [stream],
+            sendEncodings: [
+                {
+                    // Configuración para adaptación de bitrate
+                    maxBitrate: 5000000, // 5 Mbps máximo
+                    priority: 'high',
+                    networkPriority: 'high',
+                    adaptivePtime: true,
+                    degradationPreference: 'maintain-framerate' // Priorizar calidad sobre framerate
+                }
+            ]
         });
+        
+        // Add audio track if available
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+            peerConnection.addTrack(audioTracks[0], stream);
+        }
 
         // Handle and send ICE candidates
         peerConnection.onicecandidate = (event) => {
@@ -137,7 +160,8 @@ socket.on('ice-candidate', async (data) => {
 });
 
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && remoteVideo.srcObject) {
-        remoteVideo.play().catch(error => console.error("Error reactivando remoteVideo:", error));
+    const remoteVideoElement = document.getElementById('remoteVideo');
+    if (document.visibilityState === 'visible' && remoteVideoElement && remoteVideoElement.srcObject) {
+        remoteVideoElement.play().catch(error => console.error("Error reactivando remoteVideo:", error));
     }
 });

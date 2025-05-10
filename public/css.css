@@ -96,3 +96,36 @@ video::-webkit-media-controls-fullscreen-button, video::-webkit-media-controls-p
 .hidden{
     display: none;
 }
+
+/* Estilos para el botón de pantalla completa */
+.fullscreen-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 0;
+}
+
+.fullscreen-button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+body:hover .fullscreen-button {
+    opacity: 0.7;
+}
+
+.fullscreen-button:hover {
+    opacity: 1;
+}

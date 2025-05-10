@@ -3,6 +3,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 const roomCodeDisplay = document.getElementById('roomCode');
 const loadingVideo = document.getElementById('loadingVideo');
 const remSection = document.getElementById('rem');
+const fullscreenButton = document.getElementById('fullscreenButton');
 let peerConnection;
 
 // Request a room code when page loads
@@ -15,6 +16,32 @@ const rtcConfig = {
         { urls: 'stun:stun1.l.google.com:19302' }
     ]
 };
+
+// Función para entrar/salir de pantalla completa
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        // Entrar en pantalla completa
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+            document.documentElement.msRequestFullscreen();
+        }
+    } else {
+        // Salir de pantalla completa
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Añadir evento al botón de pantalla completa
+fullscreenButton.addEventListener('click', toggleFullScreen);
 
 // Display room code when received
 socket.on('room-created', (roomId) => {
