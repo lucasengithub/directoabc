@@ -4,61 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ONDASYSTEM Pantalla</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .button-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        .button {
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-        }
-
-        .send-button {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .receive-button {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .button:hover {
-            opacity: 0.9;
-        }
-    </style>
+    <link rel="stylesheet" href="css.css">
 </head>
 <body>
+    <main>
     <h1>ONDASYSTEM Pantalla</h1>
-<p id="commercial">This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact <a href="mailto:hola@lucaspeinado.es" target="_blank">hola@lucaspeinado.es</a> or use the OTAL commercial version.  See more about this on <a href="https://github.com/lucasengithub/directoabc" target="_blank"></a>GitHub.</p>
-    <div class="button-container">
-        <a href="/send" class="button send-button">Send Screen</a>
-        <a href="/receive" class="button receive-button">Receive Screen</a>
-    </div>
+    <p>This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact <a href="mailto:hola@lucaspeinado.es" target="_blank">hola@lucaspeinado.es</a> or use the BOTAL commercial version.  See more about this on <a href="https://github.com/lucasengithub/directoabc" target="_blank"></a>GitHub.</p>
+        <div class="button-container">
+            <button onclick="window.location.href='/send'" class="button send-button">Send Screen</button>
+            <button onclick="window.location.href='/receive'" class="button receive-button">Receive Screen</button>
+        </div>
+        <br><br><br><br>
+
+    <section class="infobox">
+        <h3>Wanting to selfhost?</h3>
+        <p>Download the code from <a href="https://github.com/lucasengithub/directoabc" target="_blank">GitHub.</a></p>
+        <b>NOTE:</b>
+        <p>You cant use this if you intend to make money with it.</p>
+    </main>
 </body>
 </html>

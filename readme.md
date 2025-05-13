@@ -1,4 +1,4 @@
-# Introducing Directo, the modern way to screen-share.
+# Introducing ONDAPantalla by ONDASystem, the modern way to screen-share.
 So, imagine, you´re in a very important meeting and is your turn to show your work to your team. 
 
 You can do it in two ways. The first one could be by sharing a shitty pdf by mail, slack or something. The second is by connecting your PC to the screen.
@@ -9,7 +9,7 @@ Now, you have to deal with inputs, cables and discover that Windows treats that 
 
 So this process is disgusting. It should be a better way to do this.
 
-## And yes, it is and is called Directo.
+## And yes, it is and is called ONDAPantalla.
 
 Directo is easy. It uses the robust WebRTC technology present in videocall apps to share your screen between PCs.
 
@@ -24,4 +24,4 @@ No more hassle, no more bullshit. Just Screen-share, Just Directo.
 
 For commercial licenses, write me an email to hola@lucaspeinado.es, or use the code according the [license](https://otal.lucaspeinado.es). 
 
-### Warning: Directo is in an alpha state.
+### Warning: ONDAPantalla is in an alpha state.

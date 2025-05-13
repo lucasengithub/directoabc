@@ -6,29 +6,33 @@
     <title>ONDASYSTEM Pantalla - Send Screen</title>
     <link rel="stylesheet" href="/css.css">
     <style>
-        body { text-align: center; }
-        #joinForm { margin: 20px 0; }
-        #roomInput { font-size: 18px; padding: 5px; width: 150px; font-family: agave, monospace;}
-        #joinButton { font-size: 18px; padding: 5px 15px; margin-left: 10px; }
+        #roomInput { font-size: 18px; font-family: agave, monospace;}
         #status { margin: 20px 0; font-weight: bold; }
         .hidden { display: none; }
+        #joinForm { display: flex; align-items: center; justify-content:space-between; }
     </style>
 </head>
 <body>
-    <h1>ONDASYSTEM Pantalla - Send Screen</h1>
-<p id="commercial">This version is only for non-commercial use. Commercial use is prohibited. If you want to use this software for commercial purposes, please contact <a href="mailto:hola@lucaspeinado.es" target="_blank">hola@lucaspeinado.es</a> or use the OTAL commercial version.  See more about this on <a href="https://github.com/lucasengithub/directoabc" target="_blank"></a>GitHub.</p>
+    <main>
+        <h1>ONDASYSTEM - Send Screen</h1>
     <div id="joinForm">
         <input type="text" id="roomInput" placeholder="xxxxxx" maxlength="6">
         <button id="joinButton">Join Screen</button>
     </div>
-    <h3>Warning</h3>
-    Alpha software, audio not working.
-    Not available in mobile devices.
-    <h3>Instructions</h3>
-    <p>1. Enter the room code.</p>
-    <p>2. Click "Join Screen" to start streaming this screen.</p>
+    Expecting audio, mobile support, better quality or saving the screen code? Soon an app will be available.
+    <br>
+    <br>
+    <section class="infobox">
+        <h3>Warning</h3>
+        <p>- <b>Alpha software</b>, audio not working.</p>
+        <p>- Not available in mobile devices.</p>
+        <h3>Instructions</h3>
+        <p>1. Enter the room code.</p>
+        <p>2. Click "Join Screen" to start streaming this screen.</p>
+    </section>
     <div id="status"></div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/send.js"></script>
+    </main>
 </body>
 </html>
