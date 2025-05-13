@@ -4,6 +4,7 @@ const roomCodeDisplay = document.getElementById('roomCode');
 const loadingVideo = document.getElementById('loadingVideo');
 const remSection = document.getElementById('rem');
 const fullscreenButton = document.getElementById('fullscreenButton');
+const currentInstance = document.getElementById('currentInstance');
 let peerConnection;
 
 // Request a room code when page loads
@@ -42,6 +43,12 @@ function toggleFullScreen() {
 
 // Añadir evento al botón de pantalla completa
 fullscreenButton.addEventListener('click', toggleFullScreen);
+
+// CUrrenr Instance
+
+document.addEventListener('DOMContentLoaded', () => {
+    currentInstance.textContent = `${window.location.hostname}`;
+})
 
 // Display room code when received
 socket.on('room-created', (roomId) => {
