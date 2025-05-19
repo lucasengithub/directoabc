@@ -113,11 +113,20 @@ socket.on('joined-room', async (hostId) => {
         
         // Configurar buffer mínimo para reducir latencia
         if (transceiver.sender && transceiver.sender.getParameters) {
-            const parameters = transceiver.sender.getParameters();
-            if (parameters.encodings && parameters.encodings.length > 0) {
-                // Reducir buffer para menor latencia
-                parameters.encodings[0].networkPriority = 'very-high';
-                transceiver.sender.setParameters(parameters).catch(e => console.error('Error al configurar parámetros:', e));
+            try {
+                const parameters = transceiver.sender.getParameters();
+                if (parameters.encodings && parameters.encodings.length > 0) {
+                    // Verificar si la propiedad es modificable antes de cambiarla
+                    if ('networkPriority' in parameters.encodings[0]) {
+                        parameters.encodings[0].networkPriority = 'very-high';
+                        transceiver.sender.setParameters(parameters)
+                            .catch(e => console.error('Error al configurar parámetros:', e));
+                    } else {
+                        console.log('La propiedad networkPriority no está disponible en este navegador');
+                    }
+                }
+            } catch (error) {
+                console.error('Error al acceder a los parámetros del transceiver:', error);
             }
         }
         
