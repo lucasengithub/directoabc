@@ -78,7 +78,7 @@ joinButton.addEventListener('click', async () => {
 socket.on('joined-room', async (hostId) => {
     try {
         statusDisplay.textContent = 'Room joined. Setting up connection...';
-        
+
         // Use the previously stored stream
         const stream = window.streamForPeerConnection;
         if (!stream) {
@@ -92,7 +92,7 @@ socket.on('joined-room', async (hostId) => {
             bundlePolicy: 'max-bundle',
             rtcpMuxPolicy: 'require'
         });
-        
+
         // Enable low-latency optimization
         const transceiver = peerConnection.addTransceiver(stream.getVideoTracks()[0], {
             direction: 'sendonly',
@@ -110,26 +110,32 @@ socket.on('joined-room', async (hostId) => {
                 }
             ]
         });
-        
+
         // Configurar buffer mínimo para reducir latencia
         if (transceiver.sender && transceiver.sender.getParameters) {
             try {
                 const parameters = transceiver.sender.getParameters();
                 if (parameters.encodings && parameters.encodings.length > 0) {
+                    // Crear un nuevo objeto de parámetros para evitar modificar el original directamente
+                    const newParameters = {
+                        encodings: parameters.encodings.map(encoding => ({ ...encoding }))
+                    };
+
                     // Verificar si la propiedad es modificable antes de cambiarla
-                    if ('networkPriority' in parameters.encodings[0]) {
-                        parameters.encodings[0].networkPriority = 'very-high';
-                        transceiver.sender.setParameters(parameters)
+                    if ('networkPriority' in newParameters.encodings[0]) {
+                        newParameters.encodings[0].networkPriority = 'very-high';
+                        // Intentar establecer los nuevos parámetros
+                        transceiver.sender.setParameters(newParameters)
                             .catch(e => console.error('Error al configurar parámetros:', e));
                     } else {
-                        console.log('La propiedad networkPriority no está disponible en este navegador');
+                        console.log('La propiedad networkPriority no está disponible o no es modificable en este navegador');
                     }
                 }
             } catch (error) {
-                console.error('Error al acceder a los parámetros del transceiver:', error);
+                console.error('Error al acceder o configurar parámetros del transceiver:', error);
             }
         }
-        
+
         // Add audio track if available
         const audioTracks = stream.getAudioTracks();
         if (audioTracks.length > 0) {
