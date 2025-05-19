@@ -91,9 +91,13 @@ io.on('connection', (socket) => {
         for (const [roomId, room] of rooms.entries()) {
             if (room.host === socket.id) {
                 rooms.delete(roomId);
+                // Notify all clients in the room
+                io.to(roomId).emit('host-disconnected');
                 break;
             }
         }
+        // Clean up any remaining references
+        socket.removeAllListeners();
     });
 });
 
