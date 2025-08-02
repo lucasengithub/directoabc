@@ -18,6 +18,37 @@ const rtcConfig = {
     ]
 };
 
+// Función para mostrar notificaciones con Toastify
+function showToast(message, type = 'info') {
+    const config = {
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        stopOnFocus: true,
+        style: {}
+    };
+
+    switch (type) {
+        case 'success':
+            config.style.background = "linear-gradient(to right, #00b09b, #96c93d)";
+            break;
+        case 'error':
+            config.style.background = "linear-gradient(to right, #ff5f6d, #ffc371)";
+            config.duration = 5000;
+            break;
+        case 'warning':
+            config.style.background = "linear-gradient(to right, #f093fb, #f5576c)";
+            break;
+        case 'info':
+        default:
+            config.style.background = "linear-gradient(to right, #667eea, #764ba2)";
+            break;
+    }
+
+    Toastify(config).showToast();
+}
+
 // Función para entrar/salir de pantalla completa
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
@@ -53,10 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Display room code when received
 socket.on('room-created', (roomId) => {
     roomCodeDisplay.textContent = `${roomId}`;
+    showToast(`Sala creada: ${roomId}`, 'success');
 });
 
 // Handle incoming viewer
 socket.on('viewer-joined', async (viewerId) => {
+    showToast('Alguien se está conectando...', 'info');
     try {
         // Create peer connection
         peerConnection = new RTCPeerConnection(rtcConfig);
@@ -102,23 +135,53 @@ socket.on('viewer-joined', async (viewerId) => {
         // Handle connection state changes con transición mejorada
         peerConnection.onconnectionstatechange = () => {
             console.log("connectionState:", peerConnection.connectionState);
-            if (peerConnection.connectionState === 'connected') {
-                // Transición más rápida y suave entre pantallas
-                remSection.style.transition = "opacity 0.5s ease-out";
-                remoteVideo.style.transition = "opacity 0.5s ease-in";
-                
-                // Asegurar que el video remoto ya está visible antes de ocultar la pantalla de espera
-                if (remoteVideo.readyState >= 2) { // HAVE_CURRENT_DATA o superior
-                    // Transición inmediata si ya tenemos datos de video
-                    performTransition();
-                } else {
-                    // Esperar a tener suficientes datos de video antes de la transición
-                    remoteVideo.addEventListener('canplay', performTransition, { once: true });
+            
+            switch (peerConnection.connectionState) {
+                case 'connecting':
+                    showToast('Estableciendo conexión...', 'info');
+                    break;
+                case 'connected':
+                    showToast('¡Conectado! Compartiendo pantalla', 'success');
+                    // Transición más rápida y suave entre pantallas
+                    remSection.style.transition = "opacity 0.5s ease-out";
+                    remoteVideo.style.transition = "opacity 0.5s ease-in";
                     
-                    // Timeout de seguridad por si el evento canplay no se dispara
-                    setTimeout(performTransition, 300);
-                }
-                
+                    // Asegurar que el video remoto ya está visible antes de ocultar la pantalla de espera
+                    if (remoteVideo.readyState >= 2) { // HAVE_CURRENT_DATA o superior
+                        // Transición inmediata si ya tenemos datos de video
+                        performTransition();
+                    } else {
+                        // Esperar a tener suficientes datos de video antes de la transición
+                        remoteVideo.addEventListener('canplay', performTransition, { once: true });
+                        
+                        // Timeout de seguridad por si el evento canplay no se dispara
+                        setTimeout(performTransition, 300);
+                    }
+                    break;
+                case 'disconnected':
+                    showToast('Conexión perdida', 'warning');
+                    // Al desconectar, revertir la transición más rápidamente
+                    remSection.classList.remove('hidden');
+                    remSection.style.transition = "opacity 0.3s ease-in";
+                    remoteVideo.style.transition = "opacity 0.3s ease-out";
+                    remSection.style.opacity = "1";
+                    remoteVideo.style.opacity = "0";
+                    
+                    // Limpiar el video más rápido
+                    setTimeout(() => {
+                        remoteVideo.classList.add('hidden');
+                        remoteVideo.srcObject = null;
+                    }, 300);
+                    break;
+                case 'failed':
+                    showToast('Error en la conexión', 'error');
+                    break;
+                case 'closed':
+                    showToast('Conexión cerrada', 'info');
+                    break;
+            }
+            
+            if (peerConnection.connectionState === 'connected') {
                 function performTransition() {
                     // Hacer la transición más rápida
                     remSection.style.opacity = "0";
@@ -129,23 +192,11 @@ socket.on('viewer-joined', async (viewerId) => {
                         remSection.classList.add('hidden');
                     }, 500);
                 }
-            } else if (peerConnection.connectionState === 'disconnected') {
-                // Al desconectar, revertir la transición más rápidamente
-                remSection.classList.remove('hidden');
-                remSection.style.transition = "opacity 0.3s ease-in";
-                remoteVideo.style.transition = "opacity 0.3s ease-out";
-                remSection.style.opacity = "1";
-                remoteVideo.style.opacity = "0";
-                
-                // Limpiar el video más rápido
-                setTimeout(() => {
-                    remoteVideo.classList.add('hidden');
-                    remoteVideo.srcObject = null;
-                }, 300);
             }
         };
     } catch (error) {
         console.error('Error creating peer connection:', error);
+        showToast('Error al crear la conexión', 'error');
     }
 });
 
@@ -159,8 +210,10 @@ socket.on('offer', async (data) => {
             target: data.sender,
             sdp: answer
         });
+        showToast('Negociación WebRTC completada', 'info');
     } catch (error) {
         console.error('Error handling offer:', error);
+        showToast('Error en la negociación WebRTC', 'error');
     }
 });
 
@@ -171,5 +224,6 @@ socket.on('ice-candidate', async (data) => {
         }
     } catch (error) {
         console.error('Error adding ICE candidate:', error);
+        showToast('Error procesando candidato ICE', 'warning');
     }
 });

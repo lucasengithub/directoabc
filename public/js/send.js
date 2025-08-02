@@ -13,19 +13,56 @@ const rtcConfig = {
     ]
 };
 
+// Función para mostrar notificaciones con Toastify
+function showToast(message, type = 'info') {
+    const config = {
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        stopOnFocus: true,
+        style: {}
+    };
+
+    switch (type) {
+        case 'success':
+            config.style.background = "linear-gradient(to right, #00b09b, #96c93d)";
+            break;
+        case 'error':
+            config.style.background = "linear-gradient(to right, #ff5f6d, #ffc371)";
+            config.duration = 5000;
+            break;
+        case 'warning':
+            config.style.background = "linear-gradient(to right, #f093fb, #f5576c)";
+            break;
+        case 'info':
+        default:
+            config.style.background = "linear-gradient(to right, #667eea, #764ba2)";
+            break;
+    }
+
+    Toastify(config).showToast();
+}
+
 joinButton.addEventListener('click', async () => {
     const roomId = roomInput.value.trim();
-    if (!roomId) return;
+    if (!roomId) {
+        showToast('Por favor ingresa un código de sala', 'warning');
+        return;
+    }
 
     try {
+        showToast('Iniciando captura de pantalla...', 'info');
         // Check browser support and log browser info
         console.log('Browser:', navigator.userAgent);
         
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
             console.log('MediaDevices:', navigator.mediaDevices);
+            showToast('API de compartir pantalla no disponible', 'error');
             throw new Error('Screen sharing API not available');
         }
 
+        showToast('Selecciona la pantalla a compartir', 'info');
         // Request screen share with standard settings
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
@@ -52,6 +89,7 @@ joinButton.addEventListener('click', async () => {
         // After getting stream, join the room
         socket.emit('join-room', roomId);
         statusDisplay.textContent = 'Connecting...';
+        showToast('Conectando a la sala...', 'info');
 
         // Store stream for later use
         window.streamForPeerConnection = stream;
@@ -65,12 +103,16 @@ joinButton.addEventListener('click', async () => {
 
         if (error.name === 'NotAllowedError') {
             statusDisplay.textContent = 'Please allow screen sharing when prompted';
+            showToast('Permiso de pantalla denegado', 'error');
         } else if (error.name === 'NotReadableError') {
             statusDisplay.textContent = 'Unable to capture the screen. This device may not be compatible, try with other.';
+            showToast('Error de captura: dispositivo incompatible', 'error');
         } else if (error.name === 'NotFoundError') {
             statusDisplay.textContent = 'No screen sharing device found';
+            showToast('No se encontró dispositivo de captura', 'error');
         } else {
             statusDisplay.textContent = `Screen sharing error: ${error.message}`;
+            showToast(`Error: ${error.message}`, 'error');
         }
     }
 });
@@ -78,10 +120,12 @@ joinButton.addEventListener('click', async () => {
 socket.on('joined-room', async (hostId) => {
     try {
         statusDisplay.textContent = 'Room joined. Setting up connection...';
+        showToast('¡Sala encontrada! Configurando conexión...', 'success');
 
         // Use the previously stored stream
         const stream = window.streamForPeerConnection;
         if (!stream) {
+            showToast('Error: No hay stream disponible', 'error');
             throw new Error('No stream available');
         }
 
@@ -116,8 +160,12 @@ socket.on('joined-room', async (hostId) => {
             try {
                 const parameters = transceiver.sender.getParameters();
                 if (parameters.encodings && parameters.encodings.length > 0) {
-                    // Crear un nuevo objeto de parámetros para evitar modificar el original directamente
+                    // Crear una copia completa de los parámetros incluyendo todas las propiedades requeridas
                     const newParameters = {
+                        transactionId: parameters.transactionId,
+                        codecs: parameters.codecs || [],
+                        headerExtensions: parameters.headerExtensions || [],
+                        rtcp: parameters.rtcp || {},
                         encodings: parameters.encodings.map(encoding => ({ ...encoding }))
                     };
 
@@ -125,8 +173,8 @@ socket.on('joined-room', async (hostId) => {
                     if ('networkPriority' in newParameters.encodings[0]) {
                         newParameters.encodings[0].networkPriority = 'very-high';
                         // Intentar establecer los nuevos parámetros
-                        transceiver.sender.setParameters(newParameters)
-                            .catch(e => console.error('Error al configurar parámetros:', e));
+                        await transceiver.sender.setParameters(newParameters);
+                        console.log('Parámetros de red configurados exitosamente');
                     } else {
                         console.log('La propiedad networkPriority no está disponible o no es modificable en este navegador');
                     }
@@ -161,6 +209,7 @@ socket.on('joined-room', async (hostId) => {
         });
 
         statusDisplay.textContent = 'Screen sharing started';
+        showToast('¡Pantalla compartida exitosamente!', 'success');
 
         // Handle stream end
         stream.getVideoTracks()[0].onended = () => {
@@ -169,12 +218,15 @@ socket.on('joined-room', async (hostId) => {
                 peerConnection = null;
             }
             statusDisplay.textContent = 'Screen sharing ended';
+            showToast('Compartir pantalla terminado', 'info');
         };
     } catch (error) {
         if (error.name === 'NotAllowedError') {
             statusDisplay.textContent = 'Screen share permission denied';
+            showToast('Permiso de pantalla denegado', 'error');
         } else {
             statusDisplay.textContent = 'Error starting screen share';
+            showToast('Error al iniciar compartir pantalla', 'error');
             console.error('Error:', error);
         }
     }
@@ -184,9 +236,11 @@ socket.on('answer', async (data) => {
     try {
         if (peerConnection) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            showToast('Conexión WebRTC establecida', 'success');
         }
     } catch (error) {
         console.error('Error handling answer:', error);
+        showToast('Error en respuesta WebRTC', 'error');
     }
 });
 
@@ -197,6 +251,7 @@ socket.on('ice-candidate', async (data) => {
         }
     } catch (error) {
         console.error('Error adding ICE candidate:', error);
+        showToast('Error procesando candidato ICE', 'warning');
     }
 });
 
