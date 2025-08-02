@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Display room code when received
 socket.on('room-created', (roomId) => {
     roomCodeDisplay.textContent = `${roomId}`;
-    showToast(`Sala creada: ${roomId}`, 'success');
 });
 
 // Handle incoming viewer
@@ -210,7 +209,6 @@ socket.on('offer', async (data) => {
             target: data.sender,
             sdp: answer
         });
-        showToast('Negociación WebRTC completada', 'info');
     } catch (error) {
         console.error('Error handling offer:', error);
         showToast('Error en la negociación WebRTC', 'error');

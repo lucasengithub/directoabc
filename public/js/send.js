@@ -52,7 +52,6 @@ joinButton.addEventListener('click', async () => {
     }
 
     try {
-        showToast('Iniciando captura de pantalla...', 'info');
         // Check browser support and log browser info
         console.log('Browser:', navigator.userAgent);
         
@@ -62,7 +61,6 @@ joinButton.addEventListener('click', async () => {
             throw new Error('Screen sharing API not available');
         }
 
-        showToast('Selecciona la pantalla a compartir', 'info');
         // Request screen share with standard settings
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
@@ -212,7 +210,6 @@ socket.on('answer', async (data) => {
     try {
         if (peerConnection) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            showToast('Conexión WebRTC establecida', 'success');
         }
     } catch (error) {
         console.error('Error handling answer:', error);
