@@ -155,34 +155,10 @@ socket.on('joined-room', async (hostId) => {
             ]
         });
 
-        // Configurar buffer mínimo para reducir latencia
-        if (transceiver.sender && transceiver.sender.getParameters) {
-            try {
-                const parameters = transceiver.sender.getParameters();
-                if (parameters.encodings && parameters.encodings.length > 0) {
-                    // Crear una copia completa de los parámetros incluyendo todas las propiedades requeridas
-                    const newParameters = {
-                        transactionId: parameters.transactionId,
-                        codecs: parameters.codecs || [],
-                        headerExtensions: parameters.headerExtensions || [],
-                        rtcp: parameters.rtcp || {},
-                        encodings: parameters.encodings.map(encoding => ({ ...encoding }))
-                    };
-
-                    // Verificar si la propiedad es modificable antes de cambiarla
-                    if ('networkPriority' in newParameters.encodings[0]) {
-                        newParameters.encodings[0].networkPriority = 'very-high';
-                        // Intentar establecer los nuevos parámetros
-                        await transceiver.sender.setParameters(newParameters);
-                        console.log('Parámetros de red configurados exitosamente');
-                    } else {
-                        console.log('La propiedad networkPriority no está disponible o no es modificable en este navegador');
-                    }
-                }
-            } catch (error) {
-                console.error('Error al acceder o configurar parámetros del transceiver:', error);
-            }
-        }
+        // Configuración adicional para optimización (opcional)
+        // Nota: Removemos setParameters() ya que puede causar errores en algunos navegadores
+        // La configuración en sendEncodings ya proporciona la optimización necesaria
+        console.log('Transceiver configurado con optimizaciones de baja latencia');
 
         // Add audio track if available
         const audioTracks = stream.getAudioTracks();
